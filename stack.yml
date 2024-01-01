@@ -1,67 +1,74 @@
-version: '3.9'
+version: '3.3'
 
 services:
-  broker:
-    image: eclipse-mosquitto:latest
-    ports:
-      - '1883:1883'
+
+  influxdb:
     volumes:
-      - ./broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
-    networks:
-      - broker_network
+      - influxdb_data:/var/lib/influxdb
+    image: influxdb:2.0.7
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin1234
+      DOCKER_INFLUXDB_INIT_ORG: iot
+      DOCKER_INFLUXDB_INIT_BUCKET: tema
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: Bh4Od8kk6yBxY4sPqoJqn0tcnPxfaRYOBIIlyxJtCaA8Q6OPRmDLd_BrlT93-qxhV8G-RUCx3uJdaMLtZb3CBQ==
+    ports:
+      - "8086:8086"
+
+  grafana:
+    image: grafana/grafana:latest
+    env_file:
+      - .env
+    depends_on:
+      - influxdb
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: grafanaSPRC2023
+      GF_SECURITY_ADMIN_USER: asistent
+    ports:
+      - "80:3000"
+    # networks:
+    #   - database_network
+    volumes:
+      - grafana_data:/var/lib/grafana
     restart: always
-  
+
+  mosquitto:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+    # networks:
+    #   - broker_network
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: always
+
   adapter:
-    image: adapter
     build:
       context: .
       dockerfile: ./adapter/Dockerfile
+    image: adapter
+    env_file:
+      - .env
     depends_on:
-      - broker  
-      - influxdb   
-    environment:
-      - DEBUG_DATA_FLOW=true
-      - INFLUXDB_HOST=sprc3_influxdb
-      - BROKER_HOST=sprc3_broker
-      - DB_NAME=influx_db
-    networks:
-      - db_network
-      - broker_network
-    restart: always
-  
-  influxdb:
-    image: influxdb:1.8
-    ports:
-      - '8086:8086'
-    volumes:
-      - influxdb-data:/var/lib/influxdb
-    networks:
-      - db_network
-      - grafana_network
-    restart: always
-  
-  grafana:
-    image: grafana/grafana:latest
-    depends_on:
+      - mosquitto
       - influxdb
-    ports:
-      - '80:3000'
     environment:
-      - GF_SECURITY_ADMIN_USER=asistent
-      - GF_SECURITY_ADMIN_PASSWORD=grafanaSPRC2021
-    networks:
-      - grafana_network    
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/:/etc/grafana/provisioning
+      DEBUG_DATA_FLOW: "true"
+      INFLUXDB_URL: ${INFLUXDB_URL}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+    # networks:
+    #   - broker_network
+    #   - database_network
     restart: always
 
 volumes:
-  influxdb-data:
-  grafana-data:
+  influxdb_data: {}
+  grafana_data: {}
 
-networks:
-  broker_network:
-  db_network:
-  grafana_network:
-  
+# networks:
+#   broker_network: {}
+#   database_network: {}
+#   grafana_network: {}

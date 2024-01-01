@@ -5,21 +5,20 @@ from faker import Faker
 
 # let's connect to the MQTT broker
 MQTT_BROKER_URL = "mqtt.eclipseprojects.io"
-MQTT_PUBLISH_TOPIC = "temperatura"
 
-# def generate_fake_mqtt_topic():
-#     # Generare de componente pentru locație și stație
-#     location = fake.word()
-#     station = fake.word()
+def generate_fake_mqtt_topic():
+    # Generare de componente pentru locație și stație
+    location = fake.word()
+    station = fake.word()
 
-#     # Asigurare că componentele nu conțin caracterul special "/"
-#     location = location.replace("/", "_")
-#     station = station.replace("/", "_")
+    # Asigurare că componentele nu conțin caracterul special "/"
+    location = location.replace("/", "_")
+    station = station.replace("/", "_")
 
-#     # Formatare subiect MQTT
-#     mqtt_topic = f"{location}/{station}"
+    # Formatare subiect MQTT
+    mqtt_topic = f"{location}/{station}"
 
-#     return mqtt_topic
+    return mqtt_topic
 
 mqttc = mqtt.Client()
 mqttc.connect(MQTT_BROKER_URL)
@@ -49,9 +48,10 @@ while True:
     # Convert the data dictionary to a JSON-formatted string
     payload1 = json.dumps(data)
     # payload2 = json.dumps(sensor_data)
-    
+    topic = generate_fake_mqtt_topic()
 
-    mqttc.publish(MQTT_PUBLISH_TOPIC, payload1)
+    mqttc.publish(topic, payload1)
+    print(f"topic: {topic}")
     print(f"Published new temperature measurement: {payload1}")
     time.sleep(1)
     # mqttc.publish(MQTT_PUBLISH_TOPIC, payload2)
