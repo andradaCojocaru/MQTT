@@ -2,13 +2,14 @@ import time
 import json
 import paho.mqtt.client as mqtt
 from faker import Faker
+from datetime import datetime
 
 # let's connect to the MQTT broker
 MQTT_BROKER_URL = "mqtt.eclipseprojects.io"
 
 def generate_fake_mqtt_topic():
     # Generare de componente pentru locație și stație
-    location = fake.word()
+    location = "UPB"
     station = fake.word()
 
     # Asigurare că componentele nu conțin caracterul special "/"
@@ -34,7 +35,10 @@ while True:
         "PRJ": "SPRC",
         "TMP": fake.pyfloat(left_digits=2, right_digits=1),
         "status": "OK",
-        "timestamp": fake.date_time_this_decade().isoformat(),
+        "timestamp": fake.date_time_between_dates(
+            datetime_start=datetime(2024, 1, 1),
+            datetime_end=datetime.now()
+        ).isoformat()
     }
 
     # sensor_data = {

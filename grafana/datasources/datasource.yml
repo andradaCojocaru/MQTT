@@ -1,0 +1,13 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: "http://influxdb:8086"
+    jsonData:
+      version: Flux
+      defaultBucket: "tema"
+      organization: "iot"
+    secureJsonData:
+      token: "Bh4Od8kk6yBxY4sPqoJqn0tcnPxfaRYOBIIlyxJtCaA8Q6OPRmDLd_BrlT93-qxhV8G-RUCx3uJdaMLtZb3CBQ=="

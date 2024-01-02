@@ -7,4 +7,4 @@ RUN pip install -r /tmp/requirements.txt
 WORKDIR /adapter
 COPY ./adapter/adapter.py /adapter
 
-CMD ["python", "adapter.py"]
+CMD ["python","-u", "adapter.py"]
