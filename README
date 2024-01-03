@@ -1,7 +1,53 @@
+#342C1 Andrada Ioana Cojocaru
+Running:
+For running the solution use ./run.sh or ./leave.sh for remove stack
+
+General implementation:
+Adapter
+For this project I used docker desktop - latest images for all services (influxdb, grafana, mosquitto).
+I created a custom image for the adapter that I have tested using a docker-compose with specifications 
+in the first link below and then I begin the implementation with docker swarm.
+In folder ./adapter it is my code implementation for the adapter where I used the mqtt broker 
+"mqtt.eclipseprojects.io" as in the lab and a program sensor.py that generates data using Faker
+(always in location UPB, 10 input data for
+different stations) with a timestamp that begins with a specific data to have newer dates.
+In adapter.py I subscribed to all topics, that are a lot so I verify to have a topic like 
+"location/station" and than that the data received is a json; after this I verify in the 
+dictionary only the numeric fields
+that I introduce in the influxDb. For logger I printed messages relevant and I looked in the 
+Docker Desktop for the output in adapter container. I made a Dockerfile for my custom image
+where I copied the data and run
+the adapter.py command using -u for displayed logs.
+
+Mosquitto
+Then I created stack.yml with images that I needed, along with volumes to have persistant data.
+I tried to use .env, but I had some problems with it and all environment data are written directly in
+.yml file. For the mosquitto image a have a file with configuration, the same that was provided in
+the lab.
+
+InfluxDB
+The configuration of influxdb is the same as provided in the first link, but with different user, 
+password, token, name of bucket, organization.
+I accesed influxdb at "http://localhost:8086" and I found the bucket which has retention forever,
+I selected the location UPB and than get the flux query.
+
+Grafana
+For the grafana part, I accesed "http://localhost:80" the port that was in the statement and
+than integrating it with influxdb. I made it in the app than I used a datasource.yml,
+with the fields that I have put there.
+I created dashboards there - one with the table and one with time series - I observed that my data
+was not displayed, as in the example so I keep only columns that I needed using keep(columns), and
+for displaying all columns pivot; dashboards were added as volumes in the stack.yml file.
+I put the query from influxdb and changed setting, than export it as json.
+For the second dashboard I used transform data reduce for avg, min, max,
+current, but the name of the fields were not the same and used organize to rename it.
+
+I first worked with a default network, than I added 2 networks to group services and interact only
+with the containers that was needed.
+
+Resources used:
 https://www.influxdata.com/blog/python-mqtt-tutorial-store-iot-metrics-influxdb/
-
 https://community.influxdata.com/t/write-json-with-python-into-influxdb-v2/22820/9
-
 https://community.grafana.com/t/provisioning-datasources-selecting-flux-query-language/35030
-
 https://stackoverflow.com/questions/63518460/grafana-import-dashboard-as-part-of-docker-compose
+https://grafana.com/docs/grafana/latest/panels-visualizations/query-transform-data/transform-data/

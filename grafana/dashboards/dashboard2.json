@@ -105,7 +105,7 @@
               "type": "influxdb",
               "uid": "P951FEA4DE68E13C5"
             },
-            "query": "from(bucket: \"tema\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"location\"] == \"UPB\")\r\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_measurement\", \"_value\", \"_time\"])\r\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_measurement\"], valueColumn: \"_value\")\r\n  |> yield(name: \"mean\")",
+            "query": "from(bucket: \"tema\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_field\"] == \"BAT\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"station\", \"_value\", \"_time\"])\r\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"station\"], valueColumn: \"_value\")\r\n  |> yield(name: \"mean\")",
             "refId": "A"
           }
         ],
@@ -129,6 +129,7 @@
               },
               "inspect": false
             },
+            "fieldMinMax": false,
             "mappings": [],
             "noValue": "-",
             "thresholds": {
@@ -173,28 +174,57 @@
               "type": "influxdb",
               "uid": "P951FEA4DE68E13C5"
             },
-            "query": "from(bucket: \"tema\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"location\"] == \"UPB\")\r\n  |> aggregateWindow(every: 1s, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"_measurement\", \"_value\", \"_time\"])\r\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_measurement\"], valueColumn: \"_value\")\r\n  |> yield(name: \"mean\")",
+            "query": "from(bucket: \"tema\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_field\"] == \"BAT\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\r\n  |> keep(columns: [\"station\", \"_value\", \"_time\"])\r\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"station\"], valueColumn: \"_value\")\r\n  |> yield(name: \"mean\")",
             "refId": "A"
           }
         ],
         "title": "Panel Title",
+        "transformations": [
+          {
+            "id": "reduce",
+            "options": {
+              "includeTimeField": false,
+              "mode": "seriesToRows",
+              "reducers": [
+                "max",
+                "min",
+                "mean",
+                "lastNotNull"
+              ]
+            }
+          },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "includeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "Field": "Metric",
+                "Last *": "Current",
+                "Max": "",
+                "Mean": "Avg"
+              }
+            }
+          }
+        ],
         "type": "table"
       }
     ],
-    "refresh": "30s",
+    "refresh": "30m",
     "schemaVersion": 39,
     "tags": [],
     "templating": {
       "list": []
     },
     "time": {
-      "from": "now-6h",
+      "from": "now-2d",
       "to": "now"
     },
     "timepicker": {},
     "timezone": "",
-    "title": "UPB IoT Data",
-    "uid": "ac8e5f8e-ad32-48dd-b1b7-1713abcd5d3d",
-    "version": 2,
+    "title": "Battery Dashboard",
+    "uid": "d4517145-9b2c-4899-b12c-30109a37eb8a",
+    "version": 4,
     "weekStart": ""
   }

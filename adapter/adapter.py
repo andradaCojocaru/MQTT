@@ -21,7 +21,7 @@ def is_valid_topic(topic):
 def is_valid_json(message):
     try:
         json_object = json.loads(message)
-        return isinstance(json_object, dict)  # Verificăm dacă este un obiect JSON de tip dict
+        return isinstance(json_object, dict)
     except json.JSONDecodeError:
         return False
     
@@ -58,7 +58,6 @@ def on_message(client, userdata, msg):
             print(f"Received a message by topic: [{msg.topic}]")
 
             try:
-                # Parse the JSON payload
                 data = json.loads(msg.payload.decode("utf-8"))
 
                 # Extract relevant fields
@@ -70,18 +69,19 @@ def on_message(client, userdata, msg):
                     print(f"Data timestamp is: {timestamp}")
                 location, station = extract_location_and_station(msg.topic)
 
-                # Adăugarea câmpurilor numerice la punct
+                # add only numerical fields
                 for key, value in data.items():
                     if isinstance(value, (int, float)):
-                        point = Point(f'{station}.{key}').tag("location", location)
+                        point = Point(f'{station}.{key}').tag("location", location).tag("station", station)
                         point.field(key, value)
-                        timestamp_datetime = datetime.fromisoformat(timestamp)
-                        point.time(timestamp_datetime, WritePrecision.S)
-                        print(f"{location}.{station}.{key} {value}")
-                        try:
-                            write_api.write(bucket=BUCKET, record=point)
-                        except Exception as e:
-                            print(f"Write failed. Error: {e}", file=sys.stderr)
+                        if isinstance(timestamp, str):
+                            timestamp_datetime = datetime.fromisoformat(timestamp)
+                            point.time(timestamp_datetime, WritePrecision.S)
+                            print(f"{location}.{station}.{key} {value}")
+                            try:
+                                write_api.write(bucket=BUCKET, record=point)
+                            except Exception as e:
+                                print(f"Write failed. Error: {e}", file=sys.stderr)
 
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}", file=sys.stderr)
