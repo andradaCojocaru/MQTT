@@ -13,11 +13,10 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: Bh4Od8kk6yBxY4sPqoJqn0tcnPxfaRYOBIIlyxJtCaA8Q6OPRmDLd_BrlT93-qxhV8G-RUCx3uJdaMLtZb3CBQ==
     ports:
       - "8086:8086"
-    # networks:
-    #   - database_network
-    #   - broker_network
+    networks:
+      - database_network
     volumes:
-      - influxdb_data:/var/lib/influxdb
+      - influxdb_data:/var/lib/influxdb2
 
   grafana:
     image: grafana/grafana:latest
@@ -28,8 +27,8 @@ services:
       GF_SECURITY_ADMIN_USER: asistent
     ports:
       - "80:3000"
-    # networks:
-    #   - broker_network
+    networks:
+      - database_network
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana:/etc/grafana/provisioning
@@ -39,11 +38,10 @@ services:
     image: eclipse-mosquitto
     ports:
       - "1883:1883"
-    # networks:
-    #   - broker_network
+    networks:
+      - broker_network
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-    restart: always
 
   adapter:
     build:
@@ -59,14 +57,14 @@ services:
       INFLUXDB_TOKEN: Bh4Od8kk6yBxY4sPqoJqn0tcnPxfaRYOBIIlyxJtCaA8Q6OPRmDLd_BrlT93-qxhV8G-RUCx3uJdaMLtZb3CBQ==
       INFLUXDB_ORG: iot
       INFLUXDB_BUCKET: tema
-    # networks:
-    #   - broker_network
-    #   - database_network
+    networks:
+      - broker_network
+      - database_network
 
 volumes:
   influxdb_data: {}
   grafana_data: {}
 
-# networks:
-#   broker_network: {}
-#   database_network: {}
+networks:
+  broker_network: {}
+  database_network: {}

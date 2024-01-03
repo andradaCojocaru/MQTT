@@ -4,6 +4,7 @@ MQTT subscriber - Listen to a topic and sends data to InfluxDB
 
 from datetime import datetime
 import json
+import sys
 import os
 import re
 from dotenv import load_dotenv
@@ -54,54 +55,36 @@ def on_message(client, userdata, msg):
     """ The callback for when a PUBLISH message is received from the server."""
     if is_valid_topic(msg.topic):
         if is_valid_json(msg.payload):
-            #print(f"Received a message by topic: [{msg.topic}]")
+            print(f"Received a message by topic: [{msg.topic}]")
 
             try:
                 # Parse the JSON payload
                 data = json.loads(msg.payload.decode("utf-8"))
 
                 # Extract relevant fields
-                #temperature = max(float(data.get("TMP", 0)), 0.0)  # Ensure temperature is non-negative
-                # location = data.get("location", "Unknown")
                 timestamp = data.get("timestamp")
                 if timestamp is None:
                     timestamp = datetime.now().isoformat()
-                    #print(f"Datatime: now {timestamp}")
-                #else:
-                    #print(f"Datatime: {timestamp}")
+                    print(f"Data timestamp is NOW")
+                else:
+                    print(f"Data timestamp is: {timestamp}")
                 location, station = extract_location_and_station(msg.topic)
-                if location.lower() == "upb":
-                #print(f"url: {os.getenv('INFLUXDB_URL')}")
-
-                #point.time(timestamp, WritePrecision.S)
 
                 # Adăugarea câmpurilor numerice la punct
-                    for key, value in data.items():
-                        if isinstance(value, (int, float)):
-                            point = Point(f'{station}.{key}').tag("location", location)
-                            print(f"location: {location}, station: {station}")
-                            point.field(key, value)
-                            #timestamp_datetime = datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S')
-                            timestamp_datetime = datetime.fromisoformat(timestamp)
-                            #point.time(timestamp)
-                            point.time(timestamp_datetime, WritePrecision.S)
-                            print(f"time: {timestamp_datetime}")
-                            print(f"adauagte: {key}, {value}")
-                            # Scrierea în InfluxDB
-                            print(f"BUCKET: {BUCKET}")
-                            try:
-                                write_api.write(bucket=BUCKET, record=point)
-                                print("Write successful")
-                            except Exception as e:
-                                print(f"Write failed. Error: {e}")
-
-
-                # # InfluxDB logic
-                # point = Point(MQTT_PUBLISH_TOPIC).tag("location", location).field("temperature", temperature)
-                # write_api.write(bucket=BUCKET, record=point)
+                for key, value in data.items():
+                    if isinstance(value, (int, float)):
+                        point = Point(f'{station}.{key}').tag("location", location)
+                        point.field(key, value)
+                        timestamp_datetime = datetime.fromisoformat(timestamp)
+                        point.time(timestamp_datetime, WritePrecision.S)
+                        print(f"{location}.{station}.{key} {value}")
+                        try:
+                            write_api.write(bucket=BUCKET, record=point)
+                        except Exception as e:
+                            print(f"Write failed. Error: {e}", file=sys.stderr)
 
             except json.JSONDecodeError as e:
-                print(f"Error decoding JSON: {e}")
+                print(f"Error decoding JSON: {e}", file=sys.stderr)
 
 
 ## MQTT logic - Register callbacks and start MQTT client
